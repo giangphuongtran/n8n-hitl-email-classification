@@ -1,0 +1,31 @@
+# ========================
+# TRAINING PIPELINE PARAMETERS
+# ========================
+
+# Data input - raw data location
+csv_path: "data/01_raw/n8n-classifier-tracker.csv"
+
+# Train/test split ratio
+test_size: 0.2
+
+# Model configuration
+model_name: "distilbert-base-multilingual-cased"
+max_length: 512
+
+# Training hyperparameters
+num_epochs: 3
+batch_size: 16
+learning_rate: 0.00002
+
+# Model output directory
+output_dir: "data/06_models/email_classifier_finetuned"
+
+# ========================
+# INFERENCE PIPELINE PARAMETERS
+# ========================
+
+# Trained model path
+model_path: "data/06_models/email_classifier_finetuned"
+
+# Predictions output path
+predictions_output_path: "data/07_model_output/predictions.json"
