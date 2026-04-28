@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 src/email_classification/__init__.py
 src/email_classification/__main__.py
+src/email_classification/api.py
 src/email_classification/pipeline_registry.py
 src/email_classification/settings.py
 src/email_classification.egg-info/PKG-INFO
