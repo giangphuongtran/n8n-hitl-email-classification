@@ -1,0 +1,121 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: always
+    
+    ports:
+      - "5678:5678"
+    
+    environment:
+      # Basic settings
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      
+      # Security
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=admin@gmail.com
+      - N8N_BASIC_AUTH_PASSWORD=SuperSecret123
+      
+      # Webhook & URLs
+      - WEBHOOK_URL=http://localhost:5678/
+      - N8N_WEBHOOK_URL=http://localhost:5678/webhook
+      
+      # Timezone
+      - GENERIC_TIMEZONE=Asia/Ho_Chi_Minh
+      
+      # Execution settings (for email workflows)
+      - N8N_EXECUTION_MODE=regular
+      - N8N_EXECUTION_DATA_SAVE_ON_ERROR=all
+      - N8N_EXECUTION_DATA_SAVE_ON_SUCCESS=all
+    
+    volumes:
+      - n8n_data:/home/node/.n8n
+    
+    networks:
+      - internal-net
+    
+    depends_on:
+      - email-ai
+
+    
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5678/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  email-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    
+    container_name: email-ai
+    restart: always
+    
+    ports:
+      - "8001:8001"
+    
+    environment:
+      - PYTHONPATH=/app/src
+      # PyTorch settings
+      - OMP_NUM_THREADS=2
+      - PYTHONUNBUFFERED=1
+      
+      # Transformers cache (persistent across restarts)
+      - TRANSFORMERS_CACHE=/app/.cache/huggingface
+      - HF_HOME=/app/.cache/huggingface
+      
+      # Log level
+      - LOG_LEVEL=INFO
+      
+      # Confidence thresholds (can be overridden in app code)
+      - CONFIDENCE_THRESHOLD=0.85
+      - CONFIDENCE_THRESHOLD_AUTO=0.75
+    
+    volumes:
+      # Persist model cache
+      - email_ai_cache:/app/.cache
+      
+      # Persist feedback logs for retraining
+      - email_ai_logs:/app/logs
+      
+      # Fine-tuned model (if already trained)
+      # - ./email_classifier_finetuned:/app/email_classifier_finetuned:ro
+      - ./data:/app/data
+    
+    networks:
+      - internal-net
+
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          memory: 2G
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+networks:
+  internal-net:
+    driver: bridge
+
+volumes:
+  n8n_data:
+    driver: local
+  
+  email_ai_cache:
+    driver: local
+  
+  email_ai_logs:
+    driver: local

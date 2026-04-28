@@ -1,0 +1,82 @@
+# Kedro Data Catalog - defines all datasets and their locations
+# Link: https://docs.kedro.org/en/stable/catalog-data/introduction/#data-catalog
+
+# ========================
+# RAW DATA INPUTS (01_raw)
+# ========================
+
+emails_raw_csv:
+  type: pandas.csv_dataset.CSVDataset
+  filepath: data/01_raw/n8n-classifier-tracker.csv
+  load_args:
+    encoding: utf-8
+
+# ========================
+# INTERMEDIATE DATA (02_intermediate)
+# ========================
+
+prepared_emails_data:
+  type: pandas.csv_dataset.CSVDataset
+  filepath: data/02_intermediate/prepared_data.csv
+  save_args:
+    index: false
+
+# ========================
+# PRIMARY PROCESSED DATA (03_primary)
+# ========================
+
+train_dataset:
+  type: pickle.PickleDataset
+  filepath: data/03_primary/train_dataset.pkl
+
+test_dataset:
+  type: pickle.PickleDataset
+  filepath: data/03_primary/test_dataset.pkl
+
+label_encoder:
+  type: pickle.PickleDataset
+  filepath: data/03_primary/label_encoder.pkl
+
+# ========================
+# MODEL INPUT DATA (05_model_input)
+# ========================
+
+train_tokenized:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/train_tokenized.pkl
+
+test_tokenized:
+  type: pickle.PickleDataset
+  filepath: data/05_model_input/test_tokenized.pkl
+
+# ========================
+# TRAINED MODELS (06_models)
+# ========================
+
+trained_model:
+  type: pickle.PickleDataset
+  filepath: data/06_models/trained_model.pkl
+
+model_metadata:
+  type: json.JSONDataset
+  filepath: data/06_models/model_metadata.json
+
+# ========================
+# MODEL OUTPUT & PREDICTIONS (07_model_output)
+# ========================
+
+evaluation_metrics:
+  type: json.JSONDataset
+  filepath: data/07_model_output/evaluation_metrics.json
+
+classification_predictions:
+  type: json.JSONDataset
+  filepath: data/07_model_output/predictions.json
+
+# ========================
+# REPORTING (08_reporting)
+# ========================
+
+model_performance_report:
+  type: text.TextDataset
+  filepath: data/08_reporting/model_performance_report.txt

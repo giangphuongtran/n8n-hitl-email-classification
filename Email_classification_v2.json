@@ -1,0 +1,1325 @@
+{
+  "name": "Email Classification v2 (Full API)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-1520, 816],
+      "id": "1693c44b-8643-4c0c-8a9f-c14b5bce2c5b",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 500,
+        "filters": {
+          "includeSpamTrash": true,
+          "q": "in:inbox has:nouserlabels",
+          "receivedAfter": "2025-01-01T00:00:00"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [-1296, 816],
+      "id": "5dd5d769-88ab-4417-aea5-1c8ef900f7e1",
+      "name": "phnggngtrn Gmail",
+      "webhookId": "74517e62-733b-446e-b764-4d244e054604",
+      "alwaysOutputData": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [-1072, 816],
+      "id": "296916db-24ec-4047-9127-04a460ef8a6d",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ab238405-f3ca-4179-8339-62c486777fb1",
+                    "leftValue": "={{ ($json.From || '').includes('no-reply@momo.vn') && ($json.Subject || '').includes('Giao dịch thành công') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Momo Trx"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ ($json.From || '').includes('vpb.com.vn') && ($json.Subject || '').includes('Transfer successful') || ($json.From || '').includes('vpb.com.vn') && ($json.Subject || '').includes('Transaction successful') || ($json.From || '').includes('customercare@care.vpb.com.vn') && ($json.Subject || '').includes('VPBank xin thong bao bien dong so du') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "a32d0f6f-7354-44b5-b63d-26f73f08723d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VPBank Trx"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3214ee74-4f81-4df1-9bbb-2029133500fa",
+                    "leftValue": "={{ ($json.From || '').includes('info@card.vib.com.vn') && /(khóa thẻ tín dụng|mở khóa thẻ tín dụng|giao dịch thẻ tín dụng|Thay đổi hạn mức)/i.test($json.Subject || '') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VIB"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3021a0ed-d878-4be9-949e-9ab71db826b7",
+                    "leftValue": "={{ ($json.From || '').includes('close_friend_updates@facebookmail.com') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FB"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "0ffbfdc7-b079-4a0f-939b-9d8a0902939d",
+                    "leftValue": "={{ ($json.From || '').includes('no-reply@accounts.google.com') && ($json.Subject || '').includes('Cảnh báo bảo mật') }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Google Security"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [-848, -432],
+      "id": "cfd9489e-75bb-4e1b-b230-ac932e6d7e8d",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://email-ai:8001/classify",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "subject",
+              "value": "={{ $('Loop Over Items').item.json.Subject }}"
+            },
+            {
+              "name": "body",
+              "value": "={{ $('Loop Over Items').item.json.snippet }}"
+            },
+            {
+              "name": "email_id",
+              "value": "={{ $('Loop Over Items').item.json.id }}"
+            },
+            {
+              "name": "sender",
+              "value": "={{ $('Loop Over Items').item.json.From }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 100000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-624, 80],
+      "id": "58a493db-9a96-41ce-896f-806fb1a6abd6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1tZl8s93Gpjb-YL8CBzumFDfbGboPHCbOEnntT6MrKSs",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1tZl8s93Gpjb-YL8CBzumFDfbGboPHCbOEnntT6MrKSs/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "EmailId": "={{ $('Loop Over Items').item.json.id }}",
+            "Sender": "={{ $('Loop Over Items').item.json.From }}",
+            "Subject": "={{ $('Loop Over Items').item.json.Subject }}",
+            "Snippet": "={{ $('Loop Over Items').item.json.snippet }}",
+            "ConfidenceScore": "={{ $json.confidence }}",
+            "Classifier": "={{ $json.category }}",
+            "ModelUsed": "={{ $json.model_used }}",
+            "RequiresReview": "={{ $json.requires_review }}",
+            "ClassifiedAt": "={{ $json.timestamp }}"
+          },
+          "matchingColumns": [
+            "EmailId"
+          ],
+          "schema": [
+            {
+              "id": "EmailId",
+              "displayName": "EmailId",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sender",
+              "displayName": "Sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Subject",
+              "displayName": "Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Snippet",
+              "displayName": "Snippet",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ConfidenceScore",
+              "displayName": "ConfidenceScore",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Classifier",
+              "displayName": "Classifier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ModelUsed",
+              "displayName": "ModelUsed",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "RequiresReview",
+              "displayName": "RequiresReview",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "ClassifiedAt",
+              "displayName": "ClassifiedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "CorrectedLabel",
+              "displayName": "CorrectedLabel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [-400, 80],
+      "id": "eb4404c9-ecf3-419d-bf3b-7e89d0c2bd3c",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEV3Y6SHbdYSXZuW",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "595d2f41-292f-4c3e-84c3-1f5f74c4a651",
+              "leftValue": "={{ $('HTTP Request').item.json.requires_review }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-176, 80],
+      "id": "5fd8708e-781c-455d-93b8-2cf7b0db950b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7a1ee807-d6a2-490e-8ff5-e91e0baaf30e",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "account security alerts, login notifications, and password resets",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "security & logins"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "6eb2d91b-7488-480c-92f4-b35cf1f87aa7",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "travel bookings, flight itineraries, and hotel reservations",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "travel stuff"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "promotional offers, discounts, and marketing emails",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "4bac75e2-3770-4d4b-b1ed-3b4c27e0f236"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "sales"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "be6495aa-29fe-421e-b597-ba3695729e9e",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "spam, scam, and unsolicited junk mail",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "spam"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c50a1cc1-4509-40d4-acf7-5d39d507e419",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "job recruitment, career opportunities, and professional networking",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "career"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "47fb609a-7864-4dd2-b46f-4901cbc68562",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "academic coursework, university, and school communications",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "academic"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e1eb7f17-2ca4-4e68-b255-3904ceb119d4",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "personal direct messages and conversations",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "personal"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e434d605-dfb8-4213-9b30-94beaf56961d",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "order confirmations, receipts, and transactional notifications",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "automated system confirmations and receipts"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1e4a2a11-07e1-4b8a-a814-09e36006f2f5",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "newsletters, blogs, and news digests",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "news"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e2246488-cd42-4153-a3f6-6baa13dcd5b6",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "banking, finance, and payment notifications",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "banking, finance, and payment notifications"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9d6d9618-c4e4-4fca-953c-b132dcb857a6",
+                    "leftValue": "={{ $('HTTP Request').item.json.category }}",
+                    "rightValue": "social media notifications and platform updates",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "social media notifications and platform updates"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [48, -240],
+      "id": "7613ca93-4687-4de2-82da-f50e701de56c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('phnggngtrn Gmail').item.json.id }}",
+        "labelIds": ["SPAM"]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [656, 512],
+      "id": "ac4a0f92-62d0-46e8-ba10-551eca9ca525",
+      "name": "spam label",
+      "webhookId": "4b4b4644-a91f-4ffb-af9f-89c12c6eab5b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('phnggngtrn Gmail').item.json.id }}",
+        "labelIds": ["Label_5742605886439041032"]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [656, -176],
+      "id": "9ed350f0-b298-4464-a997-f2468ffa4640",
+      "name": "security label",
+      "webhookId": "e9d45b4a-0bb0-466e-abb4-068ebe3325d0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('phnggngtrn Gmail').item.json.id }}",
+        "labelIds": ["Label_1693861680296843690"]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [656, 896],
+      "id": "95171c27-b990-4af0-b7d7-66cc0aaf177b",
+      "name": "Auto update label",
+      "webhookId": "18df08eb-6129-46ee-aef4-4fcf1f4fe7e0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('phnggngtrn Gmail').item.json.id }}",
+        "labelIds": ["Label_4092244774704337501"]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [656, 704],
+      "id": "13839bf6-cd90-4b41-b219-9b260f92c771",
+      "name": "Archive label",
+      "webhookId": "916f766d-ad36-4b5c-a137-cf0f3717b290",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('phnggngtrn Gmail').item.json.id }}",
+        "labelIds": ["Label_2273297170147719107"]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [656, 320],
+      "id": "28dfd0ce-cebc-468f-8126-db6aee6f2130",
+      "name": "Travel label",
+      "webhookId": "b2fbd0b8-826c-4829-ba10-b6806381e9d7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('phnggngtrn Gmail').item.json.id }}",
+        "labelIds": ["Label_8786156208158518678"]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [656, 1088],
+      "id": "966574c2-e5a5-46a8-854c-d23af0ce6232",
+      "name": "To read label",
+      "webhookId": "cb6c0fd7-3b5b-4835-afc6-3b3603c42f49",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('phnggngtrn Gmail').item.json.id }}",
+        "labelIds": ["Label_1312534809455931367"]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [48, 352],
+      "id": "8146ecb6-c3ed-4c46-b52c-92e61f2d4521",
+      "name": "To classify",
+      "webhookId": "0e5b6abe-dbec-4f7a-b48b-79db6fb32f62",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Loop Over Items').item.json.id }}",
+        "labelIds": ["Label_delete_placeholder"]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [-432, -432],
+      "id": "to-delete-label-id",
+      "name": "To delete label",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "mMZzXAN5wWkggUS3",
+          "name": "Gmail account"
+        }
+      }
+    },
+
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [-1520, 1400],
+      "id": "feedback-trigger-id",
+      "name": "Sync Feedback Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": {
+          "__rl": true,
+          "value": "1tZl8s93Gpjb-YL8CBzumFDfbGboPHCbOEnntT6MrKSs",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1tZl8s93Gpjb-YL8CBzumFDfbGboPHCbOEnntT6MrKSs/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "CorrectedLabel",
+              "condition": "notEmpty"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [-1296, 1400],
+      "id": "read-corrections-id",
+      "name": "Read Corrections from Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "TEV3Y6SHbdYSXZuW",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "feedback-filter-cond",
+              "leftValue": "={{ $json.CorrectedLabel }}",
+              "rightValue": "={{ $json.Classifier }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-1072, 1400],
+      "id": "filter-corrections-id",
+      "name": "Only Corrections (label changed)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://email-ai:8001/feedback",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "email_id",
+              "value": "={{ $json.EmailId }}"
+            },
+            {
+              "name": "correct_category",
+              "value": "={{ $json.CorrectedLabel }}"
+            },
+            {
+              "name": "incorrect_category",
+              "value": "={{ $json.Classifier }}"
+            },
+            {
+              "name": "feedback_type",
+              "value": "correction"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-848, 1400],
+      "id": "post-feedback-id",
+      "name": "POST /feedback"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://email-ai:8001/stats",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [-624, 1400],
+      "id": "get-stats-id",
+      "name": "GET /stats (log totals)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "phnggngtrn Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "phnggngtrn Gmail": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "To delete label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "To delete label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "To delete label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "To delete label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "security label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "To classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "security label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Travel label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "spam label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "spam label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Archive label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Archive label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Archive label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Auto update label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "To read label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Archive label",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "spam label",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "spam label": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "security label": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto update label": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To delete label": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive label": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Travel label": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To read label": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To classify": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Feedback Trigger": {
+      "main": [
+        [
+          {
+            "node": "Read Corrections from Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Corrections from Sheet": {
+      "main": [
+        [
+          {
+            "node": "Only Corrections (label changed)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only Corrections (label changed)": {
+      "main": [
+        [
+          {
+            "node": "POST /feedback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "POST /feedback": {
+      "main": [
+        [
+          {
+            "node": "GET /stats (log totals)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveExecutionProgress": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "6ab73bc1-0ea1-5661-c87c-c3a431f08426",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bbad9ae299ec9b14614ea880efb6209f81ce7540841e61afeb965bd28518cb67"
+  },
+  "id": "StlsBaZjs6brfuBW",
+  "tags": [
+    {
+      "createdAt": "2026-04-07T09:40:25.676Z",
+      "updatedAt": "2026-04-07T09:40:25.676Z",
+      "id": "hAeuOCVh33Lrgu4d",
+      "name": "email"
+    },
+    {
+      "createdAt": "2026-04-07T09:40:24.119Z",
+      "updatedAt": "2026-04-07T09:40:24.119Z",
+      "id": "p0nk9lSXF4WBlR39",
+      "name": "classifier"
+    }
+  ]
+}

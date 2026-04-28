@@ -1,0 +1,2 @@
+[console_scripts]
+email-classification = email_classification.__main__:main
